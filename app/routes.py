@@ -7,11 +7,37 @@ import os
 
 pins_bp = Blueprint("pins", __name__, url_prefix="/pins")
 
+#---------------------# HELPER FUNCTIONS #---------------------#
+
+def invalid_input():
+    return jsonify({"details":"Invalid data"}), 400
+
+
+#---------------------# DECORATORS #---------------------#
+
+def pin_not_found(func):
+    def inner(pin_id):
+        if Pin.query.get(pin_id) is None:
+            return jsonify(None), 404
+        return func(pin_id)
+    #renames the function for each wrapped endpoint to avoid endpoint conflict
+    inner.__name__ = func.__name__
+    return inner
+
+
+#---------------------# PIN ENDPOINTS #---------------------#
+
 @pins_bp.route("", methods=["GET"], strict_slashes=False)
 def pins_index():
     pins = Pin.query.all()
     pins_response = [pin.to_json() for pin in pins]
     return jsonify(pins_response), 200
+
+@pins_bp.route("/<pin_id>", methods=["GET"], strict_slashes=False)
+@pin_not_found
+def single_pin(pin_id):
+    pin = Pin.query.get(pin_id)
+    return jsonify(pin.to_json()), 200
 
 
 @pins_bp.route("", methods=["POST"], strict_slashes=False)
@@ -26,12 +52,23 @@ def create_pin():
         request_body["notes"] = ""
 
     new_pin = Pin(lat_lon = request_body["lat_lon"], 
-                    pinned_at = datetime.utcnow, 
+                    pinned_at = request_body["pinned_at"], 
                     hours = request_body["hours"],
-                    cookies_available = request["cookies_available"],
+                    cookies_available = request_body["cookies_available"],
                     notes = request_body["notes"],
                     upvote_count = 0)
     db.session.add(new_pin)
     db.session.commit()
 
     return jsonify(new_pin.to_json()), 201
+
+@pins_bp.route("/<pin_id>", methods=["PUT"], strict_slashes=False)
+@pin_not_found
+def update_pin(pin_id):
+    pin = Pin.query.get(pin_id)
+    response_body = request.get_json()
+    pin.title = response_body["title"]
+    pin.description = response_body["description"]
+    pin.completed_at = response_body["completed_at"]
+    db.session.commit()
+    return jsonify(pin.to_json()), 200
