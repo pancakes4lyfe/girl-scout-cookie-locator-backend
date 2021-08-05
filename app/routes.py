@@ -72,3 +72,11 @@ def update_pin(pin_id):
     pin.completed_at = response_body["completed_at"]
     db.session.commit()
     return jsonify(pin.to_json()), 200
+
+@pins_bp.route("/<pin_id>", methods=["DELETE"], strict_slashes=False)
+@pin_not_found
+def delete_pin(pin_id):
+    pin = Pin.query.get(pin_id)
+    db.session.delete(pin)
+    db.session.commit()
+    return jsonify({"details":f'pin {pin.id} "{pin.title}" successfully deleted'}), 200
