@@ -44,24 +44,26 @@ def single_pin(pin_id):
 def create_pin():
     request_body = request.get_json()
 
+    request_body["pinned_at"] = datetime.utcnow()
     # if "hours" not in request_body:
     #     request_body["hours"] = "Unknown"
     # if "cookies_available" not in request_body:
     #     request_body["cookies_available"] = "Unknown"
-    # if "notes" not in request_body:
-    #     request_body["notes"] = ""
+    if "notes" not in request_body:
+        request_body["notes"] = ""
 
-    new_pin = Pin(lat_lon = request_body["lat_lon"] 
-                    # pinned_at = request_body["pinned_at"], 
+    new_pin = Pin(lat_lon = request_body["lat_lon"], 
+                    pinned_at = request_body["pinned_at"], 
                     # hours = request_body["hours"],
                     # cookies_available = request_body["cookies_available"],
-                    # notes = request_body["notes"],
+                    notes = request_body["notes"]
                     # upvote_count = 0
                 )
     db.session.add(new_pin)
     db.session.commit()
-
-    return jsonify(new_pin.to_json()), 201
+    return jsonify({"details": "pin successfully created",
+                    "data": new_pin.to_json()
+                    }), 201
 
 @pins_bp.route("/<pin_id>", methods=["PUT"], strict_slashes=False)
 @pin_not_found
@@ -69,6 +71,7 @@ def update_pin(pin_id):
     pin = Pin.query.get(pin_id)
     response_body = request.get_json()
     pin.lat_lon = response_body["lat_lon"]
+    pin.notes = response_body["notes"]
 
     db.session.commit()
     return jsonify(pin.to_json()), 200
