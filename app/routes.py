@@ -45,16 +45,17 @@ def create_pin():
     request_body = request.get_json()
 
     request_body["pinned_at"] = datetime.utcnow()
-    # if "hours" not in request_body:
-    #     request_body["hours"] = "Unknown"
+    if not request_body["hours"]:
+        request_body["hours"] = "N/A"
     # if "cookies_available" not in request_body:
     #     request_body["cookies_available"] = "Unknown"
     if "notes" not in request_body:
         request_body["notes"] = ""
 
     new_pin = Pin(lat_lon = request_body["lat_lon"], 
-                    pinned_at = request_body["pinned_at"], 
-                    # hours = request_body["hours"],
+                    pinned_at = request_body["pinned_at"],
+                    # is_expired = False,
+                    hours = request_body["hours"],
                     # cookies_available = request_body["cookies_available"],
                     notes = request_body["notes"]
                     # upvote_count = 0
