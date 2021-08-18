@@ -10,13 +10,16 @@ class Pin(db.Model):
     hours = db.Column(db.String, nullable=True)
     cookies_available = db.Column(db.String, nullable=True)
     notes = db.Column(db.String, nullable=True)
-    # upvote_count = db.Column(db.Integer, nullable=True)
+    # upvote_count = db.Column(db.Integer)
     __tablename__ = "pins"
 
     def to_json(self):
         cookie_types = self.cookies_available
+        # upvotes = self.upvote_count
         if not self.cookies_available:
             cookie_types = "N/A"
+        # if not self.upvote_count:
+        #     upvotes = 0
 
         json_data = {
             "id": self.id,
@@ -24,7 +27,8 @@ class Pin(db.Model):
             "pinned_at": self.pinned_at,
             "hours": self.hours,
             "cookies_available": cookie_types,
-            "notes": self.notes
+            "notes": self.notes,
+            # "upvotes": upvotes
         }
         return json_data
 
