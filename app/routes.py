@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app import db
 from .models.pin import Pin
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import os
 
@@ -47,16 +47,15 @@ def create_pin():
     request_body["pinned_at"] = datetime.utcnow()
     if not request_body["hours"]:
         request_body["hours"] = "N/A"
-    # if "cookies_available" not in request_body:
-    #     request_body["cookies_available"] = "Unknown"
-    if "notes" not in request_body:
-        request_body["notes"] = ""
+    if not request_body["cookies_available"]:
+        request_body["cookies_available"] = "N/A"
+    if not request_body["notes"]:
+        request_body["notes"] = "N/A"
 
     new_pin = Pin(lat_lon = request_body["lat_lon"], 
                     pinned_at = request_body["pinned_at"],
-                    # is_expired = False,
                     hours = request_body["hours"],
-                    # cookies_available = request_body["cookies_available"],
+                    cookies_available = request_body["cookies_available"],
                     notes = request_body["notes"]
                     # upvote_count = 0
                 )
@@ -75,7 +74,9 @@ def update_pin(pin_id):
     pin.notes = response_body["notes"]
 
     db.session.commit()
-    return jsonify(pin.to_json()), 200
+    return jsonify({"details": "pin successfully updated",
+                    "data": pin.to_json()
+                    }), 200
 
 @pins_bp.route("/<pin_id>", methods=["DELETE"], strict_slashes=False)
 @pin_not_found
@@ -83,4 +84,6 @@ def delete_pin(pin_id):
     pin = Pin.query.get(pin_id)
     db.session.delete(pin)
     db.session.commit()
-    return jsonify({"details":f'pin {pin.id} "{pin.lat_lon}" successfully deleted'}), 200
+    return jsonify({"details": "pin successfully deleted",
+                    "data": pin.to_json()
+                    }), 200
