@@ -14,12 +14,16 @@ class Pin(db.Model):
     __tablename__ = "pins"
 
     def to_json(self):
+        cookie_types = self.cookies_available
+        if not self.cookies_available:
+            cookie_types = "N/A"
+
         json_data = {
             "id": self.id,
             "lat_lon": self.lat_lon,
             "pinned_at": self.pinned_at,
             "hours": self.hours,
-            # "cookies_available": self.cookies_available,
+            "cookies_available": cookie_types,
             "notes": self.notes
         }
         return json_data
