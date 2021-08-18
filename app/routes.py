@@ -30,12 +30,10 @@ def pin_not_found(func):
 @pins_bp.route("", methods=["GET"], strict_slashes=False)
 def pins_index():
     pins = Pin.query.all()
-    # for pin in pins:
-    #     if not pin.upvote_count:
-    #         pin.upvote_count = 0
     pins_response = [pin.to_json() for pin in pins]
     return jsonify(pins_response), 200
 
+# This one is unused!
 @pins_bp.route("/<pin_id>", methods=["GET"], strict_slashes=False)
 @pin_not_found
 def single_pin(pin_id):
@@ -58,8 +56,8 @@ def create_pin():
                     pinned_at = datetime.utcnow(),
                     hours = request_body["hours"],
                     cookies_available = request_body["cookies_available"],
-                    notes = request_body["notes"]
-                    # upvote_count = 0
+                    notes = request_body["notes"],
+                    upvote_count = 0
                 )
     db.session.add(new_pin)
     db.session.commit()
@@ -72,17 +70,15 @@ def create_pin():
 def update_pin(pin_id):
     pin = Pin.query.get(pin_id)
     response_body = request.get_json()
-    # if not response_body["lat_lon"]:
+    # Lat_lon and id always stay the same on a pin
 
-    # if not pin.upvote_count:
-    #     pin.upvote_count = 0
-    # if int(response_body["upvote_count"]) > pin.upvote_count:
-    #     pin.pinned_at = datetime.utcnow()
-        # pin.upvote_count += 1
+    if int(response_body["upvote_count"]) > pin.upvote_count:
+        pin.pinned_at = datetime.utcnow()
+
     pin.hours = response_body["hours"]
-    # pin.cookies_available = response_body["cookies_available"]
-    # pin.notes = response_body["notes"]
-    # pin.upvote_count = response_body["upvote_count"]
+    pin.cookies_available = response_body["cookies_available"]
+    pin.notes = response_body["notes"]
+    pin.upvote_count = response_body["upvote_count"]
 
     db.session.commit()
     return jsonify({"details": "pin successfully updated",
